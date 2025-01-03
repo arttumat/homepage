@@ -1,5 +1,5 @@
 import React, { useMemo, useCallback } from "react";
-import { AreaClosed, Line, Bar } from "@visx/shape";
+import { Line, Bar } from "@visx/shape";
 import { GridRows, GridColumns } from "@visx/grid";
 import { scaleLinear, scaleUtc } from "@visx/scale";
 import {
@@ -18,6 +18,7 @@ import { http } from "../../axios";
 import styles from "./spot.module.css";
 import { AxisBottom, AxisLeft } from "@visx/axis";
 import { Group } from "@visx/group";
+import dayjs from "dayjs";
 
 export interface Price {
   price: number;
@@ -29,10 +30,21 @@ export interface SpotData {
   prices: Price[];
 }
 
+export const WARNING_THRESHOLD = 15;
+export const BAD_THRESHOLD = 40;
+
 export const background = "#161616";
 export const background2 = "#161616";
 export const accentColor = "#78a9ff";
 export const accentColorDark = "#be95ff";
+
+export const accentColorGood = "#42be65";
+export const accentColorGoodHover = "#b3e5c1";
+export const accentColorWarning = "#d9d375";
+export const accentColorWarningHover = "#f0edc8";
+export const accentColorBad = "#ee5396";
+export const accentColorBadHover = "#f8bad5";
+
 const tooltipStyles = {
   ...defaultStyles,
   background,
@@ -48,7 +60,7 @@ const getDate = (d: Price) => new Date(d.startDate);
 const getPriceValue = (d: Price) => d.price;
 const bisectDate = bisector<Price, Date>((d) => new Date(d.startDate)).left;
 
-export type AreaProps = {
+export type BarChartProps = {
   width: number;
   height: number;
   margin?: { top: number; right: number; bottom: number; left: number };
@@ -61,7 +73,7 @@ const tickLabelProps = {
   textAnchor: "middle",
 } as const;
 
-export const SpotComponent = withTooltip<AreaProps, Price>(
+export const SpotComponent = withTooltip<BarChartProps, Price>(
   ({
     width,
     height,
@@ -71,7 +83,9 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
     tooltipData,
     tooltipTop = 0,
     tooltipLeft = 0,
-  }: AreaProps & WithTooltipProvidedProps<Price>) => {
+  }: BarChartProps & WithTooltipProvidedProps<Price>) => {
+    const [currentlyHovered, setCurrentlyHovered] =
+      React.useState<Price | null>(null);
     const { data, isLoading, isError } = useQuery<SpotData>({
       queryKey: ["spot"],
       queryFn: () => http.get("/spot").then((res) => res.data),
@@ -130,6 +144,7 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
               ? d1
               : d0;
         }
+        setCurrentlyHovered(d);
         showTooltip({
           tooltipData: d,
           tooltipLeft: x,
@@ -146,27 +161,38 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
       <div className={styles.chart}>
         <h2 className={styles.title}>Spot Prices</h2>
         <svg width={width + margin.left} height={height + margin.bottom}>
-          <rect
-            x={0}
-            y={0}
-            width={width + margin.left}
-            height={height + margin.bottom}
-            fill="url(#area-background-gradient)"
-          />
-          <Group left={margin.left} top={margin.bottom}>
+          <Group left={margin.left} top={margin.top}>
             <LinearGradient
-              id="area-background-gradient"
-              from={background2}
-              to={background}
+              id="bar-gradient-good"
+              from={accentColorGood}
+              to={accentColorGood}
             />
             <LinearGradient
-              id="area-gradient"
-              from={accentColor}
-              to={accentColor}
-              toOpacity={0.4}
+              id="bar-gradient-good-hover"
+              from={accentColorGoodHover}
+              to={accentColorGoodHover}
+            />
+            <LinearGradient
+              id="bar-gradient-warning"
+              from={accentColorWarning}
+              to={accentColorWarning}
+            />
+            <LinearGradient
+              id="bar-gradient-warning-hover"
+              from={accentColorWarningHover}
+              to={accentColorWarningHover}
+            />
+            <LinearGradient
+              id="bar-gradient-bad"
+              from={accentColorBad}
+              to={accentColorBad}
+            />
+            <LinearGradient
+              id="bar-gradient-bad-hover"
+              from={accentColorBadHover}
+              to={accentColorBadHover}
             />
             <GridRows
-              left={margin.left}
               scale={priceScale}
               width={innerWidth}
               strokeDasharray="1,3"
@@ -175,22 +201,12 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
               pointerEvents="none"
             />
             <GridColumns
-              top={margin.top}
               scale={dateScale}
               height={innerHeight}
               strokeDasharray="1,3"
               stroke={accentColor}
               strokeOpacity={0.2}
               pointerEvents="none"
-            />
-            <AreaClosed<Price>
-              data={prices}
-              x={(d) => dateScale(getDate(d)) ?? 0}
-              y={(d) => priceScale(getPriceValue(d)) ?? 0}
-              yScale={priceScale}
-              strokeWidth={1}
-              stroke="url(#area-gradient)"
-              fill="url(#area-gradient)"
             />
             <Bar
               x={margin.left}
@@ -201,14 +217,60 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
               onTouchStart={handleTooltip}
               onTouchMove={handleTooltip}
               onMouseMove={handleTooltip}
-              onMouseLeave={() => hideTooltip()}
+              onMouseLeave={() => {
+                hideTooltip();
+                setCurrentlyHovered(null);
+              }}
             />
+            {prices.map((d, i) => {
+              const barWidth = innerWidth / prices.length - 1;
+              const barHeight = innerHeight - priceScale(getPriceValue(d));
+              const barX = dateScale(getDate(d)) - barWidth / 2;
+              const barY = priceScale(getPriceValue(d));
+
+              const isHovered = currentlyHovered?.startDate === d.startDate;
+
+              const isCurrentPrice = dayjs(getDate(d))
+                .startOf("hour")
+                .isSame(dayjs(), "hour");
+
+              const goodFill = isHovered
+                ? "url(#bar-gradient-good-hover)"
+                : "url(#bar-gradient-good)";
+              const warningFill = isHovered
+                ? "url(#bar-gradient-warning-hover)"
+                : "url(#bar-gradient-warning)";
+              const badFill = isHovered
+                ? "url(#bar-gradient-bad-hover)"
+                : "url(#bar-gradient-bad)";
+
+              const barFill =
+                getPriceValue(d) < WARNING_THRESHOLD
+                  ? goodFill
+                  : getPriceValue(d) < BAD_THRESHOLD
+                    ? warningFill
+                    : badFill;
+
+              return (
+                <Bar
+                  key={`bar-${i}`}
+                  x={barX}
+                  y={barY}
+                  width={barWidth}
+                  height={barHeight}
+                  fill={barFill}
+                  stroke={isCurrentPrice ? "white" : "transparent"}
+                  strokeWidth={2}
+                />
+              );
+            })}
+
             <AxisBottom
               scale={dateScale}
               top={innerHeight}
-              numTicks={8}
+              numTicks={12}
               tickStroke={"white"}
-              tickFormat={(date) => timeFormat("%b %d %H:%M")(date as Date)}
+              tickFormat={(date) => timeFormat("%H:%M")(date as Date)}
               tickLabelProps={tickLabelProps}
               labelProps={{
                 x: width + 30,
@@ -227,7 +289,7 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
               tickStroke={"white"}
               tickLabelProps={tickLabelProps}
               hideZero
-              numTicks={4}
+              numTicks={10}
               hideAxisLine
               left={margin.left - 5}
               labelProps={{
@@ -248,7 +310,7 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
                     x: tooltipLeft - margin.left,
                     y: innerHeight + margin.top,
                   }}
-                  stroke={accentColorDark}
+                  stroke={"white"}
                   strokeWidth={2}
                   pointerEvents="none"
                   strokeDasharray="5,2"
@@ -259,7 +321,7 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
                     x: innerWidth + margin.left,
                     y: tooltipTop,
                   }}
-                  stroke={accentColorDark}
+                  stroke={"white"}
                   strokeWidth={2}
                   pointerEvents="none"
                   strokeDasharray="5,2"
@@ -296,10 +358,10 @@ export const SpotComponent = withTooltip<AreaProps, Price>(
               left={tooltipLeft + 12}
               style={tooltipStyles}
             >
-              {`${getPriceValue(tooltipData)}c/kWh`}
+              {`${getPriceValue(tooltipData)} c/kWh`}
             </TooltipWithBounds>
             <Tooltip
-              top={innerHeight + margin.bottom}
+              top={height + margin.bottom + 15}
               left={tooltipLeft}
               style={{
                 ...defaultStyles,
