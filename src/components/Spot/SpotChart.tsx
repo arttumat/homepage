@@ -261,6 +261,7 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
                   fill={barFill}
                   stroke={isCurrentPrice ? "white" : "transparent"}
                   strokeWidth={2}
+                  pointerEvents="none"
                 />
               );
             })}
