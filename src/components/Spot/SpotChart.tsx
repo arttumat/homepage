@@ -100,6 +100,9 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
       [data],
     );
 
+    margin.left = width > 400 ? margin.left : 0;
+    margin.bottom = width > 400 ? margin.bottom : 0;
+
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -267,43 +270,47 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
               );
             })}
 
-            <AxisBottom
-              scale={dateScale}
-              top={innerHeight}
-              numTicks={12}
-              tickStroke={"white"}
-              tickFormat={(date) => timeFormat("%H:%M")(date as Date)}
-              tickLabelProps={tickLabelProps}
-              labelProps={{
-                x: width + 30,
-                y: -10,
-                fill: "white",
-                fontSize: 18,
-                strokeWidth: 0,
-                stroke: "#fff",
-                paintOrder: "stroke",
-                fontFamily: "sans-serif",
-                textAnchor: "start",
-              }}
-            />
-            <AxisLeft
-              scale={priceScale}
-              tickStroke={"white"}
-              tickLabelProps={tickLabelProps}
-              hideZero
-              numTicks={10}
-              hideAxisLine
-              left={margin.left - 5}
-              labelProps={{
-                fill: "white",
-                fontSize: 18,
-                strokeWidth: 0,
-                stroke: "#fff",
-                paintOrder: "stroke",
-                fontFamily: "sans-serif",
-                textAnchor: "start",
-              }}
-            />
+            {width > 400 && (
+              <>
+                <AxisBottom
+                  scale={dateScale}
+                  top={innerHeight}
+                  numTicks={12}
+                  tickStroke={"white"}
+                  tickFormat={(date) => timeFormat("%H:%M")(date as Date)}
+                  tickLabelProps={tickLabelProps}
+                  labelProps={{
+                    x: width + 30,
+                    y: -10,
+                    fill: "white",
+                    fontSize: 18,
+                    strokeWidth: 0,
+                    stroke: "#fff",
+                    paintOrder: "stroke",
+                    fontFamily: "sans-serif",
+                    textAnchor: "start",
+                  }}
+                />
+                <AxisLeft
+                  scale={priceScale}
+                  tickStroke={"white"}
+                  tickLabelProps={tickLabelProps}
+                  hideZero
+                  numTicks={10}
+                  hideAxisLine
+                  left={margin.left - 5}
+                  labelProps={{
+                    fill: "white",
+                    fontSize: 18,
+                    strokeWidth: 0,
+                    stroke: "#fff",
+                    paintOrder: "stroke",
+                    fontFamily: "sans-serif",
+                    textAnchor: "start",
+                  }}
+                />
+              </>
+            )}
             {tooltipData && (
               <g>
                 <Line
