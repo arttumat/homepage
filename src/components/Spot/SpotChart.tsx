@@ -165,32 +165,32 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
             <LinearGradient
               id="bar-gradient-good"
               from={accentColorGood}
-              to={accentColorGood}
+              to={background}
             />
             <LinearGradient
               id="bar-gradient-good-hover"
               from={accentColorGoodHover}
-              to={accentColorGoodHover}
+              to={background}
             />
             <LinearGradient
               id="bar-gradient-warning"
               from={accentColorWarning}
-              to={accentColorWarning}
+              to={background}
             />
             <LinearGradient
               id="bar-gradient-warning-hover"
               from={accentColorWarningHover}
-              to={accentColorWarningHover}
+              to={background}
             />
             <LinearGradient
               id="bar-gradient-bad"
               from={accentColorBad}
-              to={accentColorBad}
+              to={background}
             />
             <LinearGradient
               id="bar-gradient-bad-hover"
               from={accentColorBadHover}
-              to={accentColorBadHover}
+              to={background}
             />
             <GridRows
               scale={priceScale}
@@ -228,11 +228,12 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
               const barX = dateScale(getDate(d)) - barWidth / 2;
               const barY = priceScale(getPriceValue(d));
 
-              const isHovered = currentlyHovered?.startDate === d.startDate;
-
               const isCurrentPrice = dayjs(getDate(d))
                 .startOf("hour")
                 .isSame(dayjs(), "hour");
+
+              const isHovered =
+                currentlyHovered?.startDate === d.startDate || isCurrentPrice;
 
               const goodFill = isHovered
                 ? "url(#bar-gradient-good-hover)"
@@ -259,8 +260,8 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
                   width={barWidth}
                   height={barHeight}
                   fill={barFill}
-                  stroke={isCurrentPrice ? "white" : "transparent"}
-                  strokeWidth={2}
+                  stroke={isCurrentPrice ? "white" : background}
+                  strokeWidth={1}
                   pointerEvents="none"
                 />
               );
