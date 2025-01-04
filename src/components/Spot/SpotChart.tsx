@@ -93,7 +93,7 @@ export const SpotComponent = withTooltip<BarChartProps, Price>(
 
     const prices = useMemo(
       () =>
-        data?.prices.sort(
+        data?.prices?.sort(
           (a, b) =>
             new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
         ) || [],
