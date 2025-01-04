@@ -6,7 +6,7 @@ import styles from "./App.module.css";
 import { HNIcon } from "./components/Icons/HNIcon";
 import { YleIcon } from "./components/Icons/YleIcon";
 import { ChartIcon } from "./components/Icons/ChartIcon";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const queryClient = new QueryClient();
 
@@ -25,7 +25,13 @@ const tabs = [
   },
 ];
 function App() {
-  const [selectedTab, setSelectedTab] = useState("dashboard");
+  const [selectedTab, setSelectedTab] = useState(
+    location.hash.slice(1) || "dashboard",
+  );
+
+  useEffect(() => {
+    location.hash = selectedTab;
+  }, [selectedTab]);
 
   return (
     <QueryClientProvider client={queryClient}>
