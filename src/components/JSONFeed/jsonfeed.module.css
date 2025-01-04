@@ -6,8 +6,19 @@
 
     li {
       padding: 8px 16px;
+      .information {
+        display: flex;
+        flex-direction: column;
+      }
       display: flex;
-      flex-direction: column;
+      flex-direction: row;
+      gap: 16px;
+      img {
+        align-self: center;
+        width: 150px;
+        height: 100%;
+        object-fit: contain;
+      }
     }
   }
   .date {

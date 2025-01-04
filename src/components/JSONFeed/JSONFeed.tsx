@@ -2,39 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { http } from "../../axios";
 import styles from "./jsonfeed.module.css";
 import { Link } from "../Link/Link";
+import { Feed, Item } from "../../../server/types/types";
 
-interface Author {
-  name: string;
-  url: string;
+interface FeedProps {
+  source: "hn" | "yle";
 }
 
-interface Item {
-  id: string;
-  title: string;
-  content_html: string;
-  content_parsed: Content;
-  url: string;
-  external_url: string;
-  date_published: string;
-  author: Author;
-}
-
-interface Feed {
-  version: string;
-  title: string;
-  description: string;
-  home_page_url: string;
-  items: Item[];
-}
-
-interface Content {
-  comments_url?: string;
-  article_url?: string;
-  points?: string;
-  comments?: string;
-}
-
-export const HNJSONFeed = () => {
+export const JSONFeed = ({ source }: FeedProps) => {
   const transformContentHtml = (data: Item) => {
     // find <p> tag containing text "Article URL" and from inside that extract the href attribute of the a tag
     const article_url = data.content_html.match(
@@ -69,9 +43,9 @@ export const HNJSONFeed = () => {
   };
 
   const { data, isLoading, isError } = useQuery<Feed>({
-    queryKey: ["hn-json-feed"],
+    queryKey: [`${source}-json-feed`],
     queryFn: () =>
-      http.get("/hn").then((res) => {
+      http.get(`/${source}`).then((res) => {
         res.data.items.forEach(transformContentHtml);
         return res.data;
       }),
@@ -94,23 +68,35 @@ export const HNJSONFeed = () => {
       <ul>
         {data.items.map((item) => (
           <li key={item.id}>
-            <h2>
-              <Link
-                url={
-                  item.content_parsed.article_url ||
-                  item.content_parsed.comments_url
-                }
-              >
-                {item.title}
-              </Link>
-            </h2>
-            <Link url={item.content_parsed.comments_url}>
-              {`${getHost(item)} | ${item.content_parsed.points} points | ${item.content_parsed.comments} comments`}
-            </Link>
-            <p className={styles.date}>
-              {new Date(item.date_published).toLocaleString()}
-            </p>
-            <div className={styles.separator} />
+            <div className={styles.information}>
+              <h2>
+                <Link
+                  url={
+                    item.content_parsed.article_url ||
+                    item.content_parsed.comments_url ||
+                    item.url
+                  }
+                >
+                  {item.title}
+                </Link>
+              </h2>
+              {source === "hn" && (
+                <Link url={item.content_parsed.comments_url}>
+                  {`${getHost(item)} | ${item.content_parsed.points} points | ${item.content_parsed.comments} comments`}
+                </Link>
+              )}
+              <p className={styles.date}>
+                {new Date(item.date_published).toLocaleString()}
+              </p>
+              <div className={styles.separator} />
+            </div>
+            {source === "yle" && item.enclosure?.type === "image/jpeg" && (
+              <img
+                src={`${item.enclosure?.link}?w=150`}
+                alt={item.title}
+                className={styles.image}
+              />
+            )}
           </li>
         ))}
       </ul>
