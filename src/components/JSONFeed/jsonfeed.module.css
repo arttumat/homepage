@@ -6,16 +6,20 @@
 
     li {
       padding: 8px 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 16px;
+
       .information {
         display: flex;
         flex-direction: column;
+        width: 100%;
       }
-      display: flex;
-      flex-direction: row;
-      gap: 16px;
+
       img {
         align-self: center;
-        width: 150px;
+        width: 200px;
         height: 100%;
         object-fit: contain;
       }
@@ -27,10 +31,15 @@
   }
 
   .separator {
-    margin-top: 16px;
     height: 1px;
     width: 90%;
     background: #333;
     align-self: center;
   }
+}
+
+.row {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
 }

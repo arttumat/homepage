@@ -67,35 +67,39 @@ export const JSONFeed = ({ source }: FeedProps) => {
       <ul>
         {data.items.map((item) => (
           <li key={item.id}>
-            <div className={styles.information}>
-              <h2>
-                <Link
-                  url={
-                    item.content_parsed.article_url ||
-                    item.content_parsed.comments_url ||
-                    item.url
-                  }
-                >
-                  {item.title}
-                </Link>
-              </h2>
-              {source === "hn" && (
-                <Link url={item.content_parsed.comments_url}>
-                  {`${getHost(item)} | ${item.content_parsed.points} points | ${item.content_parsed.comments} comments`}
-                </Link>
+            <div className={styles.row}>
+              <div className={styles.information}>
+                <h2>
+                  <Link
+                    url={
+                      item.content_parsed.article_url ||
+                      item.content_parsed.comments_url ||
+                      item.url
+                    }
+                  >
+                    {item.title}
+                  </Link>
+                </h2>
+                {source === "hn" && (
+                  <Link url={item.content_parsed.comments_url}>
+                    {`${getHost(item)} | ${item.content_parsed.points} points | ${item.content_parsed.comments} comments`}
+                  </Link>
+                )}
+                <p className={styles.date}>
+                  {new Date(item.date_published).toLocaleString()}
+                </p>
+              </div>
+              {source === "yle" && item.enclosure?.type === "image/jpeg" && (
+                <img
+                  src={`${item.enclosure?.link?.replace(/\w_\d+/, "w_200").replace(/\,h_\d+/, "")}`}
+                  alt={item.title}
+                  className={styles.image}
+                />
               )}
-              <p className={styles.date}>
-                {new Date(item.date_published).toLocaleString()}
-              </p>
+            </div>
+            <div className={styles.row}>
               <div className={styles.separator} />
             </div>
-            {source === "yle" && item.enclosure?.type === "image/jpeg" && (
-              <img
-                src={`${item.enclosure?.link}?w=150`}
-                alt={item.title}
-                className={styles.image}
-              />
-            )}
           </li>
         ))}
       </ul>
