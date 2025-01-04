@@ -9,8 +9,7 @@ interface FeedProps {
 }
 
 export const JSONFeed = ({ source }: FeedProps) => {
-  const transformContentHtml = (data: Item) => {
-    // find <p> tag containing text "Article URL" and from inside that extract the href attribute of the a tag
+  const transformHNContentHtml = (data: Item) => {
     const article_url = data.content_html.match(
       /<p>Article URL: <a href="([^"]+)">/,
     )?.[1];
@@ -46,7 +45,7 @@ export const JSONFeed = ({ source }: FeedProps) => {
     queryKey: [`${source}-json-feed`],
     queryFn: () =>
       http.get(`/${source}`).then((res) => {
-        res.data.items.forEach(transformContentHtml);
+        res.data.items.forEach(transformHNContentHtml);
         return res.data;
       }),
   });
