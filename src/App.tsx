@@ -7,6 +7,7 @@ import { HNIcon } from "./components/Icons/HNIcon";
 import { YleIcon } from "./components/Icons/YleIcon";
 import { ChartIcon } from "./components/Icons/ChartIcon";
 import { useEffect, useState } from "react";
+import { CurrentWeather } from "./components/Weather";
 
 const queryClient = new QueryClient();
 
@@ -37,11 +38,14 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <div className={styles.contentWrapper}>
         {selectedTab === "dashboard" && (
-          <ParentSize>
-            {({ width }) => (
-              <SpotComponent width={width * 0.9} height={width / 3} />
-            )}
-          </ParentSize>
+          <div className={styles.dashboard}>
+            <CurrentWeather />
+            <ParentSize>
+              {({ width }) => (
+                <SpotComponent width={width * 0.9} height={width / 3} />
+              )}
+            </ParentSize>
+          </div>
         )}
         {selectedTab === "yle" && <JSONFeed source="yle" />}
         {selectedTab === "hn" && <JSONFeed source="hn" />}
